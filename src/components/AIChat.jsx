@@ -207,8 +207,8 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
 
         try {
             // Use the new Generation Logic - passing fileContent now!
-            const response = await generateAIResponse(messageToSend, [...messages, { role: 'user', content: messageToSend }], userContext, fileContent);
-            setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+            await generateAIResponse(messageToSend, [...messages, { role: 'user', content: messageToSend }], userContext, fileContent);
+            // setMessages handled internally by generateAIResponse for streaming
         } catch (error) {
             setMessages(prev => [...prev, { role: 'assistant', content: "I'm sorry, I had a momentary technical problem. Please try again." }]);
         } finally {
