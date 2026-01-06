@@ -650,15 +650,6 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
                 ))}
 
 
-                {isLoading && (
-                    <div className="message assistant">
-                        <div className="message-content typing-indicator">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                )}
                 <div ref={messagesEndRef} />
             </div>
 
