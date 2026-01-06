@@ -37,21 +37,10 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
     const fileInputRef = useRef(null);
     const onboardingFileRef = useRef(null);
 
-    // API Key State
-    const [apiKey, setApiKey] = useState(() => {
-        // Priority: LocalStorage > Environment Variable
-        // We check LS first in case user manually overrode it in the UI.
-        const stored = localStorage.getItem('deepseek_api_key');
-        if (stored) return stored;
+    // API Key State - Managed by Backend
+    // const [apiKey, setApiKey] = useState(...) // REMOVED FOR SECURITY
+    // useEffect(...) // REMOVED FOR SECURITY
 
-        // Fallback to secure Environment Variable
-        return import.meta.env.VITE_DEEPSEEK_API_KEY || '';
-    });
-
-    // Save API key when it changes
-    useEffect(() => {
-        if (apiKey) localStorage.setItem('deepseek_api_key', apiKey);
-    }, [apiKey]);
 
     // Onboarding Form State
     const [manualForm, setManualForm] = useState({
@@ -99,10 +88,9 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
     // Handlers
     const handleReset = () => {
         // Immediate reset for "Home" behavior
-        // We preserve the API key if it exists, but clear other session data
-        const currentKey = localStorage.getItem('deepseek_api_key');
         localStorage.clear();
-        if (currentKey) localStorage.setItem('deepseek_api_key', currentKey);
+        // We no longer need to preserve API key as it is backend-only
+
 
         setUserContext(null);
         setMessages([{
@@ -150,6 +138,7 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
             alert("Could not read PDF text. Please ensure it's a text-based PDF or paste your summary manually.");
         } finally {
             setIsLoading(false);
+            e.target.value = ''; // Reset input to allow re-selecting the same file
         }
     };
 
@@ -200,6 +189,7 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
             alert("Could not read PDF text.");
         } finally {
             setIsLoading(false);
+            e.target.value = '';
         }
     };
 
@@ -228,18 +218,10 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
 
     // --- AI GENERATION LOGIC (DeepSeek Integration) ---
     const generateAIResponse = async (userMsg, history, context, fileText = null) => {
-        // 1. Check if user is trying to set the key
-        if (userMsg.trim().startsWith('sk-')) {
-            const potentialKey = userMsg.trim();
-            setApiKey(potentialKey);
-            return `🔑 **API Key Configured**\n\nI have saved your DeepSeek key. Now I operate with my maximum capacity and real intelligence. \n\nHow can I help you today, ${context?.name || 'colleague'}?`;
-        }
+        // 1. Generation Logic
+        // We no longer check for 'sk-' prefix or missing key on client side.
+        // The backend handles authentication.
 
-        // 2. If no key, prompt for it
-        if (!apiKey) {
-            const simResponse = await simulateAIResponse(userMsg, null, null, context);
-            return simResponse + `\n\n--- \n*💡 Tip: For real Artificial Intelligence responses, paste your DeepSeek API Key (sk-...) here.*`;
-        }
 
         // 3. Build System Prompt with Context
         let contextString = `
@@ -287,7 +269,8 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
         ];
 
         try {
-            return await chatWithDeepSeek(apiMessages, apiKey);
+            return await chatWithDeepSeek(apiMessages);
+
         } catch (error) {
             console.error(error);
             return `❌ **Connection Error**\n\nI couldn't connect with DeepSeek. Check your API Key or try again.\n\nDetail: ${error.message}`;
@@ -597,7 +580,8 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
                     <div className="ai-avatar">🤖</div>
                     <div>
                         <h3>AI Career Coach</h3>
-                        <div className="status-indicator">● {apiKey ? 'DeepSeek Activated' : 'Simulation Mode'}</div>
+                        <div className="status-indicator">● AI Online</div>
+
                     </div>
                 </div>
                 {userContext && (

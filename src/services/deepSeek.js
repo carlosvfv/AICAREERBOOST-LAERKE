@@ -1,35 +1,38 @@
-/**
- * DeepSeek API Service
- * Handles communication with the DeepSeek API for chat completions.
- */
+// Environment detection
+const isDev = import.meta.env.DEV;
+const API_URL = isDev
+    ? 'https://api.deepseek.com/chat/completions'
+    : '/.netlify/functions/chat';
 
-const API_URL = 'https://api.deepseek.com/chat/completions';
-
 /**
- * Sends a message history to DeepSeek and gets a response.
+ * Sends a message history to the backend proxy (or direct API in Dev).
  * @param {Array} messages - Array of message objects { role: 'user'|'assistant'|'system', content: string }
- * @param {string} apiKey - The DeepSeek API Key
  * @returns {Promise<string>} - The assistant's response content
  */
-export const chatWithDeepSeek = async (messages, apiKey) => {
-    if (!apiKey) {
-        throw new Error("API Key is missing");
-    }
-
+export const chatWithDeepSeek = async (messages) => {
     try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        const body = {
+            model: "deepseek-chat",
+            messages: messages
+        };
+
+        // Local Dev: Add Authorization header directly
+        if (isDev) {
+            const localKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+            if (!localKey) throw new Error("Missing VITE_DEEPSEEK_API_KEY in .env.local for local development");
+            headers['Authorization'] = `Bearer ${localKey}`;
+            // Direct API expects these extra params usually handled by backend
+            body.temperature = 0.7;
+            body.stream = false;
+        }
+
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat", // or "deepseek-coder" depending on preference, "deepseek-chat" is safer for general
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 2000,
-                stream: false
-            })
+            headers: headers,
+            body: JSON.stringify(body)
         });
 
         if (!response.ok) {
