@@ -217,11 +217,9 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
     };
 
     // --- AI GENERATION LOGIC (DeepSeek Integration) ---
+    // --- AI GENERATION LOGIC (DeepSeek Integration) ---
     const generateAIResponse = async (userMsg, history, context, fileText = null) => {
-        // 1. Generation Logic
-        // We no longer check for 'sk-' prefix or missing key on client side.
-        // The backend handles authentication.
-
+        // 1. Generation Logic is handled by Backend (Netlify Functions)
 
         // 3. Build System Prompt with Context
         let contextString = `
@@ -269,11 +267,46 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
         ];
 
         try {
-            return await chatWithDeepSeek(apiMessages);
+            // Initial empty assistant message for streaming
+            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+            let fullContent = "";
+            let messageIndex = history.length + 1; // Index of the new assistant message (history + userMsg is previous, so +1)
+            // Correction: history doesn't include the current userMsg yet in state when passed here? 
+            // Actually in handleSend we do: [...messages, { role: 'user', content: messageToSend }]
+            // So history has N items. The new assistant msg will be at index N+1.
+            // But state updates are async. It works better if we update the *last* message.
+
+            // Use the streaming service
+            await import('../services/deepSeek').then(module =>
+                module.chatWithDeepSeekStream(apiMessages, (chunk) => {
+                    fullContent += chunk;
+                    setMessages(prevMessages => {
+                        const newMessages = [...prevMessages];
+                        // Update the last message (which is our assistant placeholder)
+                        const lastMsg = newMessages[newMessages.length - 1];
+                        if (lastMsg.role === 'assistant') {
+                            lastMsg.content = fullContent;
+                        }
+                        return newMessages;
+                    });
+                })
+            );
+
+            return fullContent;
 
         } catch (error) {
             console.error(error);
-            return `❌ **Connection Error**\n\nI couldn't connect with DeepSeek. Check your API Key or try again.\n\nDetail: ${error.message}`;
+            // Replace the partial/empty message with error
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                    role: 'assistant',
+                    content: `❌ **Connection Error**\n\nI couldn't connect with DeepSeek. The server might be busy. Please try again in a few seconds.\n\nDetail: ${error.message}`
+                };
+                return newMessages;
+            });
+            return null; // Signal error
         }
     };
 
