@@ -260,10 +260,19 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
         Use emojis occasionally to be friendly. Be concise but deep.
         `;
 
+        const historyMessages = history.map(m => ({ role: m.role, content: m.content }));
+
+        // Avoid duplicating last user message if it's already in history
+        const lastMsg = historyMessages[historyMessages.length - 1];
+        if (lastMsg?.role === 'user' && lastMsg?.content === userMsg) {
+            // It's already there, don't append
+        } else {
+            historyMessages.push({ role: 'user', content: userMsg });
+        }
+
         const apiMessages = [
             { role: 'system', content: systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userMsg }
+            ...historyMessages.filter(m => m.content && m.content.trim() !== '') // Filter empty messages to prevent 400 error
         ];
 
         try {
