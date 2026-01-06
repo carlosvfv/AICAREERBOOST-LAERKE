@@ -11,7 +11,7 @@ export const handler = async (event, context) => {
         console.error("Server Error: DEEPSEEK_API_KEY is missing in environment variables.");
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: { message: "Server configuration error provided." } }),
+            body: JSON.stringify({ error: { message: "Server configuration error provided. DEEPSEEK_API_KEY is undefined/empty." } }),
         };
     }
 
