@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { chatWithDeepSeek } from '../services/deepSeek';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import logo from '../assets/logo.png';
 
 // Fix for PDF.js worker using Vite's ?url locator
 console.log('PDF.js version:', pdfjsLib.version);
@@ -611,146 +612,163 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
 
     // --- MAIN CHAT RENDER (Full Screen) ---
     return (
-        <div className="ai-chat-container">
-            <div className="chat-header">
-                <div
-                    className="chat-header-content"
-                    onClick={handleReset}
-                    style={{ cursor: 'pointer' }}
-                    title="Go to Home (Reset)"
-                >
-                    <div className="ai-avatar">🤖</div>
-                    <div>
-                        <h3>AI Career Coach</h3>
-                        <div className="status-indicator">● AI Online</div>
-
-                    </div>
-                </div>
-                {userContext && (
-                    <button
+        <>
+            <img
+                src={logo}
+                alt="AI Career Coach Logo"
+                style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '20px',
+                    width: '80px',
+                    height: '80px',
+                    zIndex: 100,
+                    borderRadius: '50%',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}
+            />
+            <div className="ai-chat-container">
+                <div className="chat-header">
+                    <div
+                        className="chat-header-content"
                         onClick={handleReset}
-                        className="text-btn"
-                        title="Clear data and restart"
-                        style={{ marginLeft: 'auto', fontSize: '0.8rem', opacity: 0.8 }}
+                        style={{ cursor: 'pointer' }}
+                        title="Go to Home (Reset)"
                     >
-                        🔄 Restart Session
-                    </button>
-                )}
-            </div>
+                        <div className="ai-avatar">
+                            <img src={logo} alt="AI Career Coach" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        </div>
+                        <div>
+                            <h3>AI Career Coach</h3>
+                            <div className="status-indicator">● AI Online</div>
 
-
-
-            <div className="messages-container">
-                {messages.map((msg, idx) => (
-                    <div key={idx} className={`message ${msg.role} ${msg.role === 'system' ? 'system-msg' : ''}`}>
-                        <div className="message-content">
-                            {msg.content}
                         </div>
                     </div>
-                ))}
-
-
-                <div ref={messagesEndRef} />
-            </div>
-
-            <div className="chat-input-container">
-                {/* Quick Options Popup Menu - Positioned Absolute to Input Container */}
-                {!isLoading && isMenuOpen && (
-                    <div className="quick-options-popup">
-                        <div className="quick-options-grid">
-                            {quickOptions.map((option, idx) => (
-                                <button
-                                    key={idx}
-                                    className="quick-option-mini-btn"
-                                    onClick={() => {
-                                        handleQuickOption(option.prompt);
-                                        setIsMenuOpen(false);
-                                    }}
-                                    disabled={isLoading}
-                                >
-                                    <span style={{ fontSize: '1.2rem' }}>{option.icon}</span>
-                                    <span>{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                {uploadedFile && (
-                    <div className="selected-file-indicator">
-                        <span className="file-icon">📎</span>
-                        <span className="file-name">{uploadedFile.name}</span>
+                    {userContext && (
                         <button
-                            className="remove-file-btn-mini"
-                            onClick={() => {
-                                setUploadedFile(null);
-                                setFileContent(null);
-                            }}
-                        >✕</button>
-                    </div>
-                )}
+                            onClick={handleReset}
+                            className="text-btn"
+                            title="Clear data and restart"
+                            style={{ marginLeft: 'auto', fontSize: '0.8rem', opacity: 0.8 }}
+                        >
+                            🔄 Restart Session
+                        </button>
+                    )}
+                </div>
 
-                <div className="grok-input-wrapper">
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf"
-                        onChange={handleFileUpload}
-                        style={{ display: 'none' }}
-                    />
-                    <button
-                        className={`action-btn ${isMenuOpen ? 'active' : ''}`}
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        title="See quick options"
-                        style={{ marginRight: '-8px' }}
-                    >
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </button>
 
-                    <button
-                        className="action-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Attach PDF for analysis"
-                    >
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                        </svg>
-                    </button>
 
-                    <textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask me anything about your career..."
-                        rows={1}
-                        disabled={isLoading}
-                    />
+                <div className="messages-container">
+                    {messages.map((msg, idx) => (
+                        <div key={idx} className={`message ${msg.role} ${msg.role === 'system' ? 'system-msg' : ''}`}>
+                            <div className="message-content">
+                                {msg.content}
+                            </div>
+                        </div>
+                    ))}
 
-                    <button
-                        className="send-button-grok"
-                        onClick={() => handleSend()}
-                        disabled={!input.trim() || isLoading}
-                    >
-                        {isLoading ? (
-                            <div className="spinner-mini"></div>
-                        ) : (
+
+                    <div ref={messagesEndRef} />
+                </div>
+
+                <div className="chat-input-container">
+                    {/* Quick Options Popup Menu - Positioned Absolute to Input Container */}
+                    {!isLoading && isMenuOpen && (
+                        <div className="quick-options-popup">
+                            <div className="quick-options-grid">
+                                {quickOptions.map((option, idx) => (
+                                    <button
+                                        key={idx}
+                                        className="quick-option-mini-btn"
+                                        onClick={() => {
+                                            handleQuickOption(option.prompt);
+                                            setIsMenuOpen(false);
+                                        }}
+                                        disabled={isLoading}
+                                    >
+                                        <span style={{ fontSize: '1.2rem' }}>{option.icon}</span>
+                                        <span>{option.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {uploadedFile && (
+                        <div className="selected-file-indicator">
+                            <span className="file-icon">📎</span>
+                            <span className="file-name">{uploadedFile.name}</span>
+                            <button
+                                className="remove-file-btn-mini"
+                                onClick={() => {
+                                    setUploadedFile(null);
+                                    setFileContent(null);
+                                }}
+                            >✕</button>
+                        </div>
+                    )}
+
+                    <div className="grok-input-wrapper">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf"
+                            onChange={handleFileUpload}
+                            style={{ display: 'none' }}
+                        />
+                        <button
+                            className={`action-btn ${isMenuOpen ? 'active' : ''}`}
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            title="See quick options"
+                            style={{ marginRight: '-8px' }}
+                        >
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
                             </svg>
-                        )}
-                    </button>
-                </div>
-                <div className="input-footer">
-                    <button className="text-btn" onClick={onBookingRequest}>📅 Book Private Session</button>
-                </div>
-            </div>
+                        </button>
 
-            <style>{`
+                        <button
+                            className="action-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Attach PDF for analysis"
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                        </button>
+
+                        <textarea
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Ask me anything about your career..."
+                            rows={1}
+                            disabled={isLoading}
+                        />
+
+                        <button
+                            className="send-button-grok"
+                            onClick={() => handleSend()}
+                            disabled={!input.trim() || isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="spinner-mini"></div>
+                            ) : (
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            )}
+                        </button>
+                    </div>
+                    <div className="input-footer">
+                        <button className="text-btn" onClick={onBookingRequest}>📅 Book Private Session</button>
+                    </div>
+                </div>
+
+                <style>{`
                 /* REFACTOR FOR FULL SCREEN / OPEN UI */
                 .ai-chat-container {
                     display: flex;
@@ -1156,7 +1174,8 @@ const AIChat = ({ onBookingRequest, setShowBackground }) => {
                     }
                 }
             `}</style>
-        </div>
+            </div>
+        </>
     );
 };
 
